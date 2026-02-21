@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Breast Cancer Detection System</title>
+    <style>
+        body { font-family: Arial; background: linear-gradient(to right,#1e3c72,#2a5298); margin:0; }
+        .dark-mode { background:#121212; color:white; }
+        .container { width:95%; max-width:1100px; margin:30px auto; background:white; padding:30px; border-radius:12px; }
+        .dark-mode .container { background:#1e1e1e; }
+        h1 { text-align:center; }
+        .input-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+        input { padding:8px; border-radius:6px; border:1px solid #ccc; }
+        button { padding:10px 20px; margin:8px; background:#2a5298; color:white; border:none; border-radius:8px; cursor:pointer; }
+        button:hover { background:#1e3c72; }
+        .result { text-align:center; font-size:22px; font-weight:bold; margin-top:20px; }
+        .malignant { color:red; }
+        .benign { color:green; }
+        .bar { height:30px; color:white; text-align:center; line-height:30px; border-radius:5px; margin-bottom:5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+<h1>🏥 Breast Cancer Detection System</h1>
+
+<div style="text-align:center;">
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+</div>
+
+<form action="/predict" method="post" onsubmit="showLoader()">
+
+<div class="input-grid">
+{% for feature in features %}
+<input type="number" step="any" name="{{feature}}" placeholder="{{feature}}" required>
+{% endfor %}
+</div>
+
+<div style="text-align:center;">
+<button type="button" onclick="fillSample()">Use Sample Data</button>
+<button type="submit">Predict</button>
+<button type="reset">Clear Form</button>
+</div>
+</form>
+
+<div id="loader" style="display:none;text-align:center;">⏳ Processing...</div>
+
+{% if prediction_text %}
+<div class="result {% if 'Malignant' in prediction_text %}malignant{% else %}benign{% endif %}">
+{{ prediction_text }}
+</div>
+
+<div style="text-align:center;">Confidence: {{ confidence }}%</div>
+
+<div style="text-align:center;">
+<a href="/download?result={{prediction_text}}&confidence={{confidence}}">
+<button>Download PDF Report</button>
+</a>
+</div>
+{% endif %}
+
+{% if probabilities %}
+<h3 style="text-align:center;">Prediction Probability</h3>
+<div style="width:60%;margin:auto;">
+<div class="bar" style="background:red;width:{{ (probabilities[0]*100) }}%;">
+Malignant: {{ (probabilities[0]*100)|round(2) }}%
+</div>
+<div class="bar" style="background:green;width:{{ (probabilities[1]*100) }}%;">
+Benign: {{ (probabilities[1]*100)|round(2) }}%
+</div>
+</div>
+{% endif %}
+
+{% if chart %}
+<div style="text-align:center;margin-top:20px;">
+<h3>Top 10 Feature Importance</h3>
+<img src="data:image/png;base64,{{ chart }}">
+</div>
+{% endif %}
+
+{% if malignant %}
+<hr>
+<h2>Educational Information</h2>
+<p style="color:red;font-weight:bold;">
+⚠ Educational purposes only. Not a medical diagnosis.
+</p>
+
+<h3>Typical Stages</h3>
+<ul>
+<li>Stage 0 – Non-invasive</li>
+<li>Stage I – Early stage</li>
+<li>Stage II – Lymph node involvement</li>
+<li>Stage III – Locally advanced</li>
+<li>Stage IV – Metastatic</li>
+</ul>
+
+<h3>Treatment Overview</h3>
+<ul>
+<li>Early stages: Surgery ± Radiation</li>
+<li>Advanced stages: Surgery + Chemotherapy</li>
+<li>Metastatic: Systemic therapy</li>
+</ul>
+
+<h3>Estimated Treatment Cost</h3>
+<ul>
+<li>India: $3k–$12k</li>
+<li>USA: $50k–$150k</li>
+<li>Germany: $30k–$80k</li>
+<li>UK: Covered by NHS</li>
+</ul>
+
+<h3>Top Global Cancer Centers</h3>
+<ul>
+<li>MD Anderson (USA)</li>
+<li>Mayo Clinic (USA)</li>
+<li>Memorial Sloan Kettering (USA)</li>
+<li>Tata Memorial (India)</li>
+<li>Royal Marsden (UK)</li>
+</ul>
+{% endif %}
+
+<hr>
+<h3>Upload CSV File</h3>
+<form action="/upload" method="post" enctype="multipart/form-data">
+<input type="file" name="file" required>
+<button type="submit">Upload & Predict</button>
+</form>
+
+</div>
+
+<script>
+function toggleDarkMode(){ document.body.classList.toggle("dark-mode"); }
+function showLoader(){ document.getElementById("loader").style.display="block"; }
+function fillSample(){
+const sample=[17.99,10.38,122.8,1001,0.1184,0.2776,0.3001,0.1471,0.2419,0.07871,
+1.095,0.9053,8.589,153.4,0.006399,0.04904,0.05373,0.01587,0.03003,0.006193,
+25.38,17.33,184.6,2019,0.1622,0.6656,0.7119,0.2654,0.4601,0.1189];
+let inputs=document.querySelectorAll(".input-grid input");
+inputs.forEach((input,i)=>input.value=sample[i]);
+}
+</script>
+
+</body>
+</html>
